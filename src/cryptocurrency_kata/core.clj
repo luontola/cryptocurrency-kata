@@ -5,7 +5,7 @@
 (defn- merge-trade [txs]
   (let [{matches :match fees :fee} (group-by :type txs)
         _ (assert (= 2 (count matches)))
-        _ (assert (>= 1 (count fees)))
+        _ (assert (<= 0 (count fees) 1))
         [source target] (sort-by :amount matches)
         [fee] fees
         common-keys [:type :time :trade-id :order-id]
