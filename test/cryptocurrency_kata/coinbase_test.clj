@@ -36,17 +36,18 @@
                                      (if (instance? UUID val)
                                        (.toString ^UUID val)
                                        val)))))
-                  rows)]
-    (zp/zprint-str (vec rows)
-                   {:map {:comma? false
-                          :key-order [:type
-                                      :time
-                                      :amount
-                                      :balance
-                                      :currency
-                                      :transfer-id
-                                      :trade-id
-                                      :order-id]}})))
+                  rows)
+        str ^String (zp/zprint-str (vec rows)
+                                   {:map {:comma? false
+                                          :key-order [:type
+                                                      :time
+                                                      :amount
+                                                      :balance
+                                                      :currency
+                                                      :transfer-id
+                                                      :trade-id
+                                                      :order-id]}})]
+    (.replace str " 0E-16M\n" " 0.0000000000000000M\n")))
 
 (defn- convert-files [^File dir]
   (doseq [^String filename (.list dir)]
