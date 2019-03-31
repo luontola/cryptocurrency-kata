@@ -2,6 +2,7 @@
   (:require [clojure.java.io :as io]
             [clojure.test :refer :all]
             [cryptocurrency-kata.coinbase :as coinbase]
+            [medley.core :refer [map-vals]]
             [zprint.core :as zp])
   (:import (java.io File)
            (java.time Instant)
@@ -30,10 +31,15 @@
 
 (defn- format-for-edn [rows]
   (let [rows (map (fn [row]
-                    (assoc row :time (.toString ^Instant (:time row))))
+                    (->> (assoc row :time (.toString ^Instant (:time row)))
+                         (map-vals (fn [val]
+                                     (if (instance? UUID val)
+                                       (.toString ^UUID val)
+                                       val)))))
                   rows)]
     (zp/zprint-str (vec rows)
-                   {:map {:key-order [:type
+                   {:map {:comma? false
+                          :key-order [:type
                                       :time
                                       :amount
                                       :balance
