@@ -56,6 +56,43 @@
               :trade-id 11311817
               :order-id "780ce36b-bc09-4534-869b-330394800769"}]))))
 
+  (testing "matches fees"
+    (is (= [{:type :match
+             :time "2018-03-24T10:27:32.994Z"
+             :trade-id 13408287
+             :order-id "2174113b-8435-4d61-82f1-018a7fc7e821"
+             :source {:amount -0.0100000000000000M
+                      :balance 0.0000000000000000M
+                      :currency :BTC}
+             :target {:amount 70.7000000000000000M
+                      :balance 1106.7937284459715000M
+                      :currency :EUR}
+             :fee {:amount -0.1767500000000000M
+                   :balance 1106.6169784459715000M
+                   :currency :EUR}}]
+           (core/group-by-trade
+            [{:type :match
+              :time "2018-03-24T10:27:32.994Z"
+              :amount -0.0100000000000000M
+              :balance 0.0000000000000000M
+              :currency :BTC
+              :trade-id 13408287
+              :order-id "2174113b-8435-4d61-82f1-018a7fc7e821"}
+             {:type :match
+              :time "2018-03-24T10:27:32.994Z"
+              :amount 70.7000000000000000M
+              :balance 1106.7937284459715000M
+              :currency :EUR
+              :trade-id 13408287
+              :order-id "2174113b-8435-4d61-82f1-018a7fc7e821"}
+             {:type :fee
+              :time "2018-03-24T10:27:32.994Z"
+              :amount -0.1767500000000000M
+              :balance 1106.6169784459715000M
+              :currency :EUR
+              :trade-id 13408287
+              :order-id "2174113b-8435-4d61-82f1-018a7fc7e821"}]))))
+
   (testing "skips deposits"
     (is (= [{:type :deposit
              :time "2018-02-04T14:48:06.142Z"
