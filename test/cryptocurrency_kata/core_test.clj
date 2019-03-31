@@ -99,11 +99,23 @@
              :amount 0.0099876500000000M
              :balance 0.0099876500000000M
              :currency :BTC
-             :transfer-id "8afb99ca-b8c3-4405-b4de-30bf2e7a0c86"}]
+             :transfer-id "8afb99ca-b8c3-4405-b4de-30bf2e7a0c86"}
+            {:type :deposit
+             :time "2018-02-08T20:31:08.148Z"
+             :amount 20.0000000000000000M
+             :balance 20.0097755507487500M
+             :currency :EUR
+             :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}]
            (core/group-by-trade
             [{:type :deposit
               :time "2018-02-04T14:48:06.142Z"
               :amount 0.0099876500000000M
               :balance 0.0099876500000000M
               :currency :BTC
-              :transfer-id "8afb99ca-b8c3-4405-b4de-30bf2e7a0c86"}])))))
+              :transfer-id "8afb99ca-b8c3-4405-b4de-30bf2e7a0c86"}
+             {:type :deposit
+              :time "2018-02-08T20:31:08.148Z"
+              :amount 20.0000000000000000M
+              :balance 20.0097755507487500M
+              :currency :EUR
+              :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}])))))
