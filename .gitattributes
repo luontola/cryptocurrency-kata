@@ -1,0 +1,4 @@
+*.clj           eol=lf
+*.edn           eol=lf
+*.md            eol=lf
+*.txt           eol=lf
