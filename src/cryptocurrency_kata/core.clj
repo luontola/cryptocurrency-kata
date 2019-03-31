@@ -2,20 +2,19 @@
 
 (set! *warn-on-reflection* true)
 
-(def ^:private common-match-keys [:type :time :trade-id :order-id])
-
 (defn- merge-trade [txs]
   (let [{matches :match fees :fee} (group-by :type txs)
         _ (assert (= 2 (count matches)))
         _ (assert (>= 1 (count fees)))
         [source target] (sort-by :amount matches)
         [fee] fees
-        common (select-keys source common-match-keys)
-        common2 (select-keys target common-match-keys)
+        common-keys [:type :time :trade-id :order-id]
+        common (select-keys source common-keys)
+        common2 (select-keys target common-keys)
         _ (assert (= common common2))
-        source (apply dissoc source common-match-keys)
-        target (apply dissoc target common-match-keys)
-        fee (apply dissoc fee common-match-keys)]
+        source (apply dissoc source common-keys)
+        target (apply dissoc target common-keys)
+        fee (apply dissoc fee common-keys)]
     (-> common
         (assoc :source source
                :target target)
