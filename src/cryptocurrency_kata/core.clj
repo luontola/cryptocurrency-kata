@@ -1,10 +1,12 @@
 (ns cryptocurrency-kata.core)
 
 (defn group-by-trade [txs]
-  (->> (group-by :trade-id txs)
-       (map (fn [[_trade-id txs]]
-              (assert (= 2 (count txs)))
-              (let [[from to] (sort-by :amount txs)]
-                {:to to
-                 :from from})))
+  (->> txs
+       (group-by #(or (:trade-id %) identity))
+       (map (fn [[_ txs]]
+              (case (count txs)
+                1 (first txs)
+                2 (let [[from to] (sort-by :amount txs)]
+                    {:to to
+                     :from from}))))
        (sort-by (comp :time :from))))
