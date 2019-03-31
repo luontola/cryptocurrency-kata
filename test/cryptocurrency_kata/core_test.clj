@@ -119,3 +119,8 @@
               :balance 20.0097755507487500M
               :currency :EUR
               :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}])))))
+
+;; TODO: original monetary value of coins on account
+;; TODO: calculate profits from trades
+;; TODO: calculate losses from trades
+;; TODO: calculate income from mining
