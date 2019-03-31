@@ -7,8 +7,8 @@ Requires installing [Clojure command line tools](https://clojure.org/guides/gett
 
 Run tests
 
-    ./bin/kaocha
+    bin/kaocha
 
 Run tests continuously
 
-    ./bin/kaocha --watch
+    bin/kaocha --watch
