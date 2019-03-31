@@ -10,22 +10,22 @@
              :time "2018-02-04T21:45:51.354Z"
              :trade-id 11311696
              :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
-             :from {:amount -64.3206146174000000M
-                    :balance 0.0000511356000000M
-                    :currency :EUR}
-             :to {:amount 0.0098621300000000M
-                  :balance 0.0098621300000000M
-                  :currency :BTC}}
+             :source {:amount -64.3206146174000000M
+                      :balance 0.0000511356000000M
+                      :currency :EUR}
+             :target {:amount 0.0098621300000000M
+                      :balance 0.0098621300000000M
+                      :currency :BTC}}
             {:type :match
              :time "2018-02-04T21:48:48.944Z"
              :trade-id 11311817
              :order-id "780ce36b-bc09-4534-869b-330394800769"
-             :from {:amount -0.0098621300000000M
-                    :balance 0.0000000000000000M
-                    :currency :BTC}
-             :to {:amount 64.3774204862000000M
-                  :balance 64.3774716218000000M
-                  :currency :EUR}}]
+             :source {:amount -0.0098621300000000M
+                      :balance 0.0000000000000000M
+                      :currency :BTC}
+             :target {:amount 64.3774204862000000M
+                      :balance 64.3774716218000000M
+                      :currency :EUR}}]
            (core/group-by-trade
             [{:type :match
               :time "2018-02-04T21:45:51.354Z"
