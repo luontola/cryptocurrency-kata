@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Deps: zprint:0.4.15">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/zprint/zprint/0.4.15/zprint-0.4.15.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
