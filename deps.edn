@@ -1,3 +1,6 @@
-{:aliases
+{:deps
+ {org.clojure/data.csv {:mvn/version "0.1.4"}}
+
+ :aliases
  {:test {:extra-paths ["test"]
          :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-413"}}}}}
