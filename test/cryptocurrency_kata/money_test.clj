@@ -70,4 +70,20 @@
                            :original-value {:amount 20.0000000000000000M
                                             :currency :EUR}}]}
              (money/take-coins coins {:amount -0.0025000000000000M
+                                      :currency :BTC}))))
+
+    (testing "take multiple coins"
+      (is (= {:taken [{:amount 0.0100000000000000M
+                       :currency :BTC
+                       :original-value {:amount 10.0000000000000000M
+                                        :currency :EUR}}
+                      {:amount 0.0025000000000000M
+                       :currency :BTC
+                       :original-value {:amount 5.0000000000000000M
+                                        :currency :EUR}}]
+              :remaining [{:amount 0.0075000000000000M
+                           :currency :BTC
+                           :original-value {:amount 15.0000000000000000M
+                                            :currency :EUR}}]}
+             (money/take-coins coins {:amount -0.0125000000000000M
                                       :currency :BTC}))))))
