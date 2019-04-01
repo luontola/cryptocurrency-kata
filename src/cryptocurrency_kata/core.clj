@@ -40,12 +40,16 @@
             {:tx tx :before account :after updated})
     updated))
 
+(defn merge-coins [account]
+  (assoc account :coins [(reduce money/sum (:coins account))]))
+
 (defn- add-coins [account money]
   (assert (pos? (:amount money))
           {:money money})
-  (let [updated (-> account
-                    (update :coins concat [(select-keys money [:amount :currency :original-value])]))]
-    updated))
+  (let [account (update account :coins concat [(select-keys money [:amount :currency :original-value])])]
+    (if (fiat-money? (:currency money))
+      (merge-coins account)
+      account)))
 
 (defn- remove-coins [account money]
   (assert (neg? (:amount money))
@@ -58,24 +62,28 @@
           {:money money})
   (-> account
       (update-balance money)
+      (add-coins money)
       (cond->
-        (crypto-coin? (:currency money)) (add-coins money))))
+        (fiat-money? (:currency money)) (merge-coins))))
 
-(defn- withdraw [account money]
-  (assert (neg? (:amount money))
-          {:money money})
-  (-> account
-      (update-balance money)
-      (cond->
-        (crypto-coin? (:currency money)) (remove-coins money))))
-
-(defn- trade [accounts tx]
-  (let [{:keys [source target]} tx
-        target (assoc target :original-value {:amount (- (:amount source))
-                                              :currency (:currency source)})]
+(defn- trade [accounts {:keys [source target]}]
+  (assert (neg? (:amount source)) {:money source})
+  (assert (pos? (:amount target)) {:money target})
+  ;; TODO: add original value only when source is in fiat currency
+  (let [target (assoc target :original-value {:amount (- (:amount source))
+                                              :currency (:currency source)})
+        source-account (get accounts (:currency source))
+        target-account (get accounts (:currency target))
+        {:keys [taken remaining]} (money/take-coins (:coins source-account) source)]
+    ;; TODO: add taken coins to target account & track original value
     (-> accounts
-        (update (:currency source) withdraw source)
-        (update (:currency target) deposit target))))
+        (assoc (:currency source) (-> source-account
+                                      (update-balance source)
+                                      (remove-coins source)
+                                      (assoc :coins remaining)))
+        (assoc (:currency target) (-> target-account
+                                      (update-balance target)
+                                      (add-coins target))))))
 
 (defn accounts-view [accounts tx]
   (case (:type tx)
