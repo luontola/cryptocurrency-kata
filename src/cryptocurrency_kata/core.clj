@@ -30,11 +30,25 @@
          (concat non-trades)
          (sort-by :time))))
 
-(defn- deposit [account tx]
+(def ^:private real-money? #{:EUR :USD})
+(def ^:private crypto-coin? (comp not real-money?))
+
+(defn- update-balance [account tx]
   (let [updated (update account :balance (fnil + 0) (:amount tx))]
     (assert (= (:balance tx) (:balance updated))
             {:tx tx :before account :after updated})
     updated))
+
+(defn- add-coins [account tx]
+  (let [updated (-> account
+                    (update :coins concat [(select-keys tx [:amount :currency])]))]
+    updated))
+
+(defn- deposit [account tx]
+  (-> account
+      (update-balance tx)
+      (cond->
+        (crypto-coin? (:currency tx)) (add-coins tx))))
 
 (defn accounts-view [accounts tx]
   (case (:type tx)

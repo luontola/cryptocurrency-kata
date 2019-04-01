@@ -145,7 +145,36 @@
                                           :amount 20.0000000000000000M
                                           :balance 20.1000000000000000M
                                           :currency :EUR
-                                          :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"})))))
+                                          :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}))))
+
+  (testing "deposit crypto coins, keep track of individual coins"
+    (is (= {:BTC {:balance 0.1000000000000000M
+                  :coins [{:amount 0.1000000000000000M
+                           :currency :BTC}]}}
+           (core/accounts-view nil {:type :deposit
+                                    :time "2018-02-04T14:48:06.142Z"
+                                    :amount 0.1000000000000000M
+                                    :balance 0.1000000000000000M
+                                    :currency :BTC
+                                    :transfer-id "8afb99ca-b8c3-4405-b4de-30bf2e7a0c86"})))
+    (is (= {:BTC {:balance 0.3000000000000000M
+                  :coins [{:amount 0.1000000000000000M
+                           :currency :BTC}
+                          {:amount 0.2000000000000000M
+                           :currency :BTC}]}}
+           (-> nil
+               (core/accounts-view {:type :deposit
+                                    :time "2018-02-04T14:48:06.142Z"
+                                    :amount 0.1000000000000000M
+                                    :balance 0.1000000000000000M
+                                    :currency :BTC
+                                    :transfer-id "8afb99ca-b8c3-4405-b4de-30bf2e7a0c86"})
+               (core/accounts-view {:type :deposit
+                                    :time "2018-02-04T14:48:06.142Z"
+                                    :amount 0.2000000000000000M
+                                    :balance 0.3000000000000000M
+                                    :currency :BTC
+                                    :transfer-id "8afb99ca-b8c3-4405-b4de-30bf2e7a0c86"}))))))
 
 ;; TODO: original monetary value of coins on account
 ;; TODO: calculate profits from trades
