@@ -11,17 +11,17 @@
           split-amount)
   (if (>= split-amount (:amount coin))
     [coin]
-    (let [coin-original-value (:amount (:original-value coin))
-          coin-remaining-amount (- (:amount coin) split-amount)
-          coin-taken-amount (- (:amount coin) coin-remaining-amount)
-          coin-remaining-value (* coin-original-value (/ coin-remaining-amount (:amount coin)))
-          coin-taken-value (- coin-original-value coin-remaining-value)
-          taken (-> coin
-                    (assoc :amount coin-taken-amount)
-                    (assoc-in [:original-value :amount] coin-taken-value))
+    (let [original-value (:amount (:original-value coin))
+          remaining-amount (- (:amount coin) split-amount)
+          remaining-value (* original-value (/ remaining-amount (:amount coin)))
           remaining (-> coin
-                        (assoc :amount coin-remaining-amount)
-                        (assoc-in [:original-value :amount] coin-remaining-value))]
+                        (assoc :amount remaining-amount)
+                        (assoc-in [:original-value :amount] remaining-value))
+          taken-amount (- (:amount coin) remaining-amount)
+          taken-value (- original-value remaining-value)
+          taken (-> coin
+                    (assoc :amount taken-amount)
+                    (assoc-in [:original-value :amount] taken-value))]
       [taken remaining])))
 
 (defn take-coins
