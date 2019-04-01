@@ -30,8 +30,8 @@
          (concat non-trades)
          (sort-by :time))))
 
-(def ^:private real-money? #{:EUR :USD})
-(def ^:private crypto-coin? (comp not real-money?))
+(def ^:private fiat-money? #{:EUR :USD})
+(def ^:private crypto-coin? (comp not fiat-money?))
 
 (defn- update-balance [account tx]
   (let [updated (update account :balance (fnil + 0) (:amount tx))]

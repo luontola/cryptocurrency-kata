@@ -121,7 +121,7 @@
               :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}])))))
 
 (deftest test-accounts-view
-  (testing "deposit real money"
+  (testing "deposit fiat money"
     (is (= {:EUR {:balance 20.0000000000000000M}}
            (core/accounts-view nil {:type :deposit
                                     :time "2018-02-08T20:31:08.148Z"
