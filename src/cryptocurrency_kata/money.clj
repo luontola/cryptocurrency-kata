@@ -29,9 +29,10 @@
    (take-coins coins wanted []))
   ([coins wanted taken-coins]
    (if (zero? (:amount wanted))
-     {:taken taken-coins
-      :remaining coins}
+     {:taken (vec taken-coins)
+      :remaining (vec coins)}
      (do
+       (assert (not (empty? coins)))
        (assert (neg? (:amount wanted))
                {:wanted wanted})
        (let [[taken-coin & remaining-coins] (concat (split-coin (first coins)

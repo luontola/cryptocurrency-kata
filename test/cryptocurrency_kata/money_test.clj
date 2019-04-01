@@ -86,4 +86,14 @@
                            :original-value {:amount 15.0000000000000000M
                                             :currency :EUR}}]}
              (money/take-coins coins {:amount -0.0125000000000000M
-                                      :currency :BTC}))))))
+                                      :currency :BTC}))))
+
+    (testing "cannot take more than there are coins"
+      (is (thrown? AssertionError
+                   (money/take-coins coins {:amount -0.0300000000000000M
+                                            :currency :BTC}))))
+
+    (testing "cannot take wrong currency"
+      (is (thrown? AssertionError
+                   (money/take-coins coins {:amount -0.0100000000000000M
+                                            :currency :ETH}))))))
