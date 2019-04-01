@@ -120,6 +120,33 @@
               :currency :EUR
               :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}])))))
 
+(deftest test-accounts-view
+  (testing "deposit real money"
+    (is (= {:EUR {:balance 20.0000000000000000M}}
+           (core/accounts-view nil {:type :deposit
+                                    :time "2018-02-08T20:31:08.148Z"
+                                    :amount 20.0000000000000000M
+                                    :balance 20.0000000000000000M
+                                    :currency :EUR
+                                    :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"})))
+    (is (= {:EUR {:balance 50.0000000000000000M}}
+           (core/accounts-view {:EUR {:balance 20.0000000000000000M}}
+                               {:type :deposit
+                                :time "2018-02-08T20:31:08.148Z"
+                                :amount 30.0000000000000000M
+                                :balance 50.0000000000000000M
+                                :currency :EUR
+                                :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}))))
+
+  (testing "balance sanity check"
+    (is (thrown? AssertionError
+                 (core/accounts-view nil {:type :deposit
+                                          :time "2018-02-08T20:31:08.148Z"
+                                          :amount 20.0000000000000000M
+                                          :balance 20.1000000000000000M
+                                          :currency :EUR
+                                          :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"})))))
+
 ;; TODO: original monetary value of coins on account
 ;; TODO: calculate profits from trades
 ;; TODO: calculate losses from trades

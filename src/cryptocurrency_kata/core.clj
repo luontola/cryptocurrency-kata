@@ -29,3 +29,13 @@
          (map (fn [[_ txs]] (merge-trade txs)))
          (concat non-trades)
          (sort-by :time))))
+
+(defn- deposit [account tx]
+  (let [updated (update account :balance (fnil + 0) (:amount tx))]
+    (assert (= (:balance tx) (:balance updated))
+            {:tx tx :before account :after updated})
+    updated))
+
+(defn accounts-view [accounts tx]
+  (case (:type tx)
+    :deposit (update accounts (:currency tx) deposit tx)))
