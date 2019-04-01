@@ -174,9 +174,98 @@
                                     :amount 0.2000000000000000M
                                     :balance 0.3000000000000000M
                                     :currency :BTC
-                                    :transfer-id "8afb99ca-b8c3-4405-b4de-30bf2e7a0c86"}))))))
+                                    :transfer-id "8afb99ca-b8c3-4405-b4de-30bf2e7a0c86"})))))
 
-;; TODO: original monetary value of coins on account
+  (testing "trade fiat money to crypto coins"
+    (let [accounts {:EUR {:balance 20.0000000000000000M}}]
+      (is (= {:EUR {:balance 5.0000000000000000M}
+              :BTC {:balance 0.0100000000000000M
+                    :coins [{:amount 0.0100000000000000M
+                             :currency :BTC
+                             :original-value {:amount 15.0000000000000000M
+                                              :currency :EUR}}]}}
+             (core/accounts-view accounts {:type :trade
+                                           :time "2018-02-04T21:45:51.354Z"
+                                           :trade-id 11311696
+                                           :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                                           :source {:amount -15.0000000000000000M
+                                                    :balance 5.0000000000000000M
+                                                    :currency :EUR}
+                                           :target {:amount 0.0100000000000000M
+                                                    :balance 0.0100000000000000M
+                                                    :currency :BTC}})))))
+
+  (testing "trade crypto coins to fiat money,"
+    (let [accounts {:EUR {:balance 5.0000000000000000M}
+                    :BTC {:balance 0.0200000000000000M
+                          :coins [{:amount 0.0100000000000000M
+                                   :currency :BTC
+                                   :original-value {:amount 15.0000000000000000M
+                                                    :currency :EUR}}
+                                  {:amount 0.0100000000000000M
+                                   :currency :BTC
+                                   :original-value {:amount 30.0000000000000000M
+                                                    :currency :EUR}}]}}]
+      (testing "whole coin"
+        (is (= {:EUR {:balance 65.0000000000000000M}
+                :BTC {:balance 0.0100000000000000M
+                      :coins [{:amount 0.0100000000000000M
+                               :currency :BTC
+                               :original-value {:amount 30.0000000000000000M
+                                                :currency :EUR}}]}}
+               (core/accounts-view accounts
+                                   {:type :trade
+                                    :time "2018-02-04T21:45:51.354Z"
+                                    :trade-id 11311696
+                                    :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                                    :source {:amount -0.0100000000000000M
+                                             :balance 0.0100000000000000M
+                                             :currency :BTC}
+                                    :target {:amount 60.0000000000000000M
+                                             :balance 65.0000000000000000M
+                                             :currency :EUR}}))))
+      (testing "partial coin"
+        (is (= {:EUR {:balance 80.0000000000000000M}
+                :BTC {:balance 0.0125000000000000M
+                      :coins [{:amount 0.0025000000000000M
+                               :currency :BTC
+                               :original-value {:amount 3.7500000000000000M
+                                                :currency :EUR}}
+                              {:amount 0.0100000000000000M
+                               :currency :BTC
+                               :original-value {:amount 30.0000000000000000M
+                                                :currency :EUR}}]}}
+               (core/accounts-view accounts
+                                   {:type :trade
+                                    :time "2018-02-04T21:45:51.354Z"
+                                    :trade-id 11311696
+                                    :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                                    :source {:amount -0.0075000000000000M
+                                             :balance 0.0125000000000000M
+                                             :currency :BTC}
+                                    :target {:amount 75.0000000000000000M
+                                             :balance 80.0000000000000000M
+                                             :currency :EUR}}))))
+      (testing "multiple coins"
+        (is (= {:EUR {:balance 110.0000000000000000M}
+                :BTC {:balance 0.0025000000000000M
+                      :coins [{:amount 0.0025000000000000M
+                               :currency :BTC
+                               :original-value {:amount 7.5000000000000000M
+                                                :currency :EUR}}]}}
+               (core/accounts-view accounts
+                                   {:type :trade
+                                    :time "2018-02-04T21:45:51.354Z"
+                                    :trade-id 11311696
+                                    :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                                    :source {:amount -0.0175000000000000M
+                                             :balance 0.0025000000000000M
+                                             :currency :BTC}
+                                    :target {:amount 105.0000000000000000M
+                                             :balance 110.0000000000000000M
+                                             :currency :EUR}})))))))
+
+;; TODO: trade crypto coins to crypto coins
 ;; TODO: calculate profits from trades
 ;; TODO: calculate losses from trades
 ;; TODO: calculate income from mining

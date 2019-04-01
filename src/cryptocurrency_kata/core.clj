@@ -1,4 +1,5 @@
-(ns cryptocurrency-kata.core)
+(ns cryptocurrency-kata.core
+  (:require [cryptocurrency-kata.money :as money]))
 
 (set! *warn-on-reflection* true)
 
@@ -39,17 +40,44 @@
             {:tx tx :before account :after updated})
     updated))
 
-(defn- add-coins [account tx]
+(defn- add-coins [account money]
+  (assert (pos? (:amount money))
+          {:money money})
   (let [updated (-> account
-                    (update :coins concat [(select-keys tx [:amount :currency])]))]
+                    (update :coins concat [(select-keys money [:amount :currency :original-value])]))]
     updated))
 
-(defn- deposit [account tx]
+(defn- remove-coins [account money]
+  (assert (neg? (:amount money))
+          {:money money})
+  (let [{:keys [taken remaining]} (money/take-coins (:coins account) money)]
+    (assoc account :coins remaining)))
+
+(defn- deposit [account money]
+  (assert (pos? (:amount money))
+          {:money money})
   (-> account
-      (update-balance tx)
+      (update-balance money)
       (cond->
-        (crypto-coin? (:currency tx)) (add-coins tx))))
+        (crypto-coin? (:currency money)) (add-coins money))))
+
+(defn- withdraw [account money]
+  (assert (neg? (:amount money))
+          {:money money})
+  (-> account
+      (update-balance money)
+      (cond->
+        (crypto-coin? (:currency money)) (remove-coins money))))
+
+(defn- trade [accounts tx]
+  (let [{:keys [source target]} tx
+        target (assoc target :original-value {:amount (- (:amount source))
+                                              :currency (:currency source)})]
+    (-> accounts
+        (update (:currency source) withdraw source)
+        (update (:currency target) deposit target))))
 
 (defn accounts-view [accounts tx]
   (case (:type tx)
-    :deposit (update accounts (:currency tx) deposit tx)))
+    :deposit (update accounts (:currency tx) deposit tx)
+    :trade (trade accounts tx)))
