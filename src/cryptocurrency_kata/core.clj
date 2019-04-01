@@ -34,56 +34,45 @@
 (def ^:private fiat-money? #{:EUR :USD})
 (def ^:private crypto-coin? (comp not fiat-money?))
 
-(defn- update-balance [account tx]
-  (let [updated (update account :balance (fnil + 0) (:amount tx))]
-    (assert (= (:balance tx) (:balance updated))
-            {:tx tx :before account :after updated})
-    updated))
-
 (defn merge-coins [account]
   (assoc account :coins [(reduce money/sum (:coins account))]))
 
-(defn- add-coins [account money]
-  (assert (pos? (:amount money))
-          {:money money})
-  (let [account (update account :coins concat [(select-keys money [:amount :currency :original-value])])]
-    (if (fiat-money? (:currency money))
-      (merge-coins account)
-      account)))
+(defn- update-balance [account tx]
+  (let [balance (:amount (reduce money/sum (:coins account)))]
+    (assert (= balance (:balance tx))
+            {:tx tx :account account})
+    (cond-> (assoc account :balance balance)
+      (fiat-money? (:currency tx)) (merge-coins))))
 
-(defn- remove-coins [account money]
-  (assert (neg? (:amount money))
-          {:money money})
-  (let [{:keys [taken remaining]} (money/take-coins (:coins account) money)]
-    (assoc account :coins remaining)))
+(defn- add-coins [account tx]
+  (assert (pos? (:amount tx))
+          {:money tx})
+  (update account :coins concat [(select-keys tx [:amount :currency :original-value])]))
 
-(defn- deposit [account money]
-  (assert (pos? (:amount money))
-          {:money money})
+(defn- deposit [account tx]
+  (assert (pos? (:amount tx))
+          {:money tx})
   (-> account
-      (update-balance money)
-      (add-coins money)
-      (cond->
-        (fiat-money? (:currency money)) (merge-coins))))
+      (add-coins tx)
+      (update-balance tx)))
 
-(defn- trade [accounts {:keys [source target]}]
-  (assert (neg? (:amount source)) {:money source})
-  (assert (pos? (:amount target)) {:money target})
+(defn- trade [accounts {source-tx :source target-tx :target}]
+  (assert (neg? (:amount source-tx)) {:money source-tx})
+  (assert (pos? (:amount target-tx)) {:money target-tx})
   ;; TODO: add original value only when source is in fiat currency
-  (let [target (assoc target :original-value {:amount (- (:amount source))
-                                              :currency (:currency source)})
-        source-account (get accounts (:currency source))
-        target-account (get accounts (:currency target))
-        {:keys [taken remaining]} (money/take-coins (:coins source-account) source)]
-    ;; TODO: add taken coins to target account & track original value
+  (let [target-tx (assoc target-tx :original-value {:amount (- (:amount source-tx))
+                                                    :currency (:currency source-tx)})
+        source-account (get accounts (:currency source-tx))
+        target-account (get accounts (:currency target-tx))
+        {:keys [taken remaining]} (money/take-coins (:coins source-account) source-tx)]
+    ;; TODO: add taken coins to target account as the original value
     (-> accounts
-        (assoc (:currency source) (-> source-account
-                                      (update-balance source)
-                                      (remove-coins source)
-                                      (assoc :coins remaining)))
-        (assoc (:currency target) (-> target-account
-                                      (update-balance target)
-                                      (add-coins target))))))
+        (assoc (:currency source-tx) (-> source-account
+                                         (assoc :coins remaining)
+                                         (update-balance source-tx)))
+        (assoc (:currency target-tx) (-> target-account
+                                         (add-coins target-tx)
+                                         (update-balance target-tx))))))
 
 (defn accounts-view [accounts tx]
   (case (:type tx)
