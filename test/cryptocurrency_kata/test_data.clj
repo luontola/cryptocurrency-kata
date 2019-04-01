@@ -50,6 +50,6 @@
 
   (->> (slurp "data/all.edn")
        (edn/read-string)
-       (core/group-by-trade)
+       (core/group-trades)
        (format-for-edn)
        (spit "data/all-grouped.edn")))

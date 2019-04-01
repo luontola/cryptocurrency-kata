@@ -16,11 +16,12 @@
         target (apply dissoc target common-keys)
         fee (apply dissoc fee common-keys)]
     (-> common
-        (assoc :source source
+        (assoc :type :trade
+               :source source
                :target target)
         (cond-> fee (assoc :fee fee)))))
 
-(defn group-by-trade [txs]
+(defn group-trades [txs]
   (let [trades (filter :trade-id txs)
         non-trades (remove :trade-id txs)]
     (->> trades

@@ -4,9 +4,9 @@
 
 (set! *warn-on-reflection* true)
 
-(deftest test-group-by-trade
-  (testing "matches the source and target accounts"
-    (is (= [{:type :match
+(deftest test-group-trades
+  (testing "groups the source and target accounts"
+    (is (= [{:type :trade
              :time "2018-02-04T21:45:51.354Z"
              :trade-id 11311696
              :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
@@ -16,7 +16,7 @@
              :target {:amount 0.0098621300000000M
                       :balance 0.0098621300000000M
                       :currency :BTC}}
-            {:type :match
+            {:type :trade
              :time "2018-02-04T21:48:48.944Z"
              :trade-id 11311817
              :order-id "780ce36b-bc09-4534-869b-330394800769"
@@ -26,7 +26,7 @@
              :target {:amount 64.3774204862000000M
                       :balance 64.3774716218000000M
                       :currency :EUR}}]
-           (core/group-by-trade
+           (core/group-trades
             [{:type :match
               :time "2018-02-04T21:45:51.354Z"
               :amount -64.3206146174000000M
@@ -56,8 +56,8 @@
               :trade-id 11311817
               :order-id "780ce36b-bc09-4534-869b-330394800769"}]))))
 
-  (testing "matches fees"
-    (is (= [{:type :match
+  (testing "groups fees"
+    (is (= [{:type :trade
              :time "2018-03-24T10:27:32.994Z"
              :trade-id 13408287
              :order-id "2174113b-8435-4d61-82f1-018a7fc7e821"
@@ -70,7 +70,7 @@
              :fee {:amount -0.1767500000000000M
                    :balance 1106.6169784459715000M
                    :currency :EUR}}]
-           (core/group-by-trade
+           (core/group-trades
             [{:type :match
               :time "2018-03-24T10:27:32.994Z"
               :amount -0.0100000000000000M
@@ -106,7 +106,7 @@
              :balance 20.0097755507487500M
              :currency :EUR
              :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}]
-           (core/group-by-trade
+           (core/group-trades
             [{:type :deposit
               :time "2018-02-04T14:48:06.142Z"
               :amount 0.0099876500000000M
