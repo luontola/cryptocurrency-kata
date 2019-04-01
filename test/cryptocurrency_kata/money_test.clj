@@ -88,6 +88,16 @@
              (money/take-coins coins {:amount -0.0125000000000000M
                                       :currency :BTC}))))
 
+    (testing "take fiat money"
+      (let [coins [{:amount 10.00M
+                    :currency :EUR}]]
+        (is (= {:taken [{:amount 7.00M
+                         :currency :EUR}]
+                :remaining [{:amount 3.00M
+                             :currency :EUR}]}
+               (money/take-coins coins {:amount -7.00M
+                                        :currency :EUR})))))
+
     (testing "cannot take more than there are coins"
       (is (thrown? AssertionError
                    (money/take-coins coins {:amount -0.0300000000000000M

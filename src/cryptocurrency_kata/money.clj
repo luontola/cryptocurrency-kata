@@ -7,21 +7,27 @@
    :currency (:currency a)})
 
 (defn- split-coin [coin split-amount]
-  (assert (pos? split-amount)
-          split-amount)
+  (assert (:amount coin) {:coin coin})
+  (assert (:currency coin) {:coin coin})
+  (assert (pos? split-amount) {:split-amount split-amount})
   (if (>= split-amount (:amount coin))
     [coin]
-    (let [original-value (:amount (:original-value coin))
+    ;; TODO: refactor the case of no original value
+    (let [original-value (:amount (or (:original-value coin)
+                                      coin))
+          _ (assert original-value {:coin coin})
           remaining-amount (- (:amount coin) split-amount)
           remaining-value (* original-value (/ remaining-amount (:amount coin)))
           remaining (-> coin
                         (assoc :amount remaining-amount)
-                        (assoc-in [:original-value :amount] remaining-value))
+                        (cond->
+                          (:original-value coin) (assoc-in [:original-value :amount] remaining-value)))
           taken-amount (- (:amount coin) remaining-amount)
           taken-value (- original-value remaining-value)
           taken (-> coin
                     (assoc :amount taken-amount)
-                    (assoc-in [:original-value :amount] taken-value))]
+                    (cond->
+                      (:original-value coin) (assoc-in [:original-value :amount] taken-value)))]
       [taken remaining])))
 
 (defn take-coins
