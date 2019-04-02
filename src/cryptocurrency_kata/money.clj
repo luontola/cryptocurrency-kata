@@ -1,4 +1,7 @@
-(ns cryptocurrency-kata.money)
+(ns cryptocurrency-kata.money
+  (:import (java.math RoundingMode)))
+
+(set! *warn-on-reflection* true)
 
 (defn sum [a b]
   (assert (= (:currency a) (:currency b))
@@ -48,6 +51,9 @@
                      still-wanted
                      (conj taken-coins taken-coin)))))))
 
+(defn- adjust-decimal-places [^BigDecimal number ^long decimal-places]
+  (.setScale number decimal-places RoundingMode/HALF_UP))
+
 (defn change-currency [coins target]
   ;; TODO: all must be positive
   ;; TODO: all must be same currency
@@ -55,9 +61,12 @@
     nil
     (let [coins-total-amount (apply + (map :amount coins))
           coin (first coins)
-          converted-coin (assoc coin :amount (with-precision (.scale (:amount target))
-                                               (* (:amount target)
-                                                  (/ (:amount coin) coins-total-amount)))
+          decimal-places (.scale ^BigDecimal (:amount target))
+          converted-coin (assoc coin :amount (-> (with-precision (+ 10 decimal-places)
+                                                   (* (:amount target)
+                                                      (/ (:amount coin)
+                                                         coins-total-amount)))
+                                                 (adjust-decimal-places decimal-places))
                                      :currency (:currency target))
           remaining-target (assoc target :amount (- (:amount target)
                                                     (:amount converted-coin)))

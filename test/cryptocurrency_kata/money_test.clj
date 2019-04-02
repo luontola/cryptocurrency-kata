@@ -162,16 +162,15 @@
                                    :currency :EUR}))))
 
   (testing "three coins, indivisible split"
-    ;; TODO          6.6666666666666666M
-    (is (= [{:amount 6.666666666666666M
+    (is (= [{:amount 6.6666666666666667M
              :currency :EUR
              :original-value {:amount 11.0000000000000000M
                               :currency :EUR}}
-            {:amount 6.666666666666667M
+            {:amount 6.6666666666666667M
              :currency :EUR
              :original-value {:amount 12.0000000000000000M
                               :currency :EUR}}
-            {:amount 6.666666666666667M
+            {:amount 6.6666666666666666M
              :currency :EUR
              :original-value {:amount 13.0000000000000000M
                               :currency :EUR}}]
