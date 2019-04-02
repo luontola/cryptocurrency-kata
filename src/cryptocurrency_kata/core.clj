@@ -45,7 +45,7 @@
                   (:amount (reduce money/sum (:coins account)))
                   0M)]
     (assert (= balance (:balance tx))
-            {:tx tx :account account})
+            {:balance balance :tx tx :account account})
     (cond-> (assoc account :balance balance)
       (fiat-money? (:currency tx)) (merge-coins))))
 
@@ -61,20 +61,27 @@
     (assoc coin :original-value coin)
     coin))
 
-(defn- trade [accounts {source-tx :source target-tx :target}]
-  (assert (neg? (:amount source-tx)) {:money source-tx})
+(defn- take-coins [accounts source-tx]
+  (assert (neg? (:amount source-tx)) {:tx source-tx})
+  (let [account (get accounts (:currency source-tx))
+        {:keys [taken remaining]} (money/take-coins (:coins account) source-tx)
+        accounts (assoc accounts (:currency source-tx) (-> account
+                                                           (assoc :coins remaining)
+                                                           (update-balance source-tx)))]
+    [taken accounts]))
+
+(defn- put-coins [accounts coins target-tx]
   (assert (pos? (:amount target-tx)) {:money target-tx})
-  (let [source-account (get accounts (:currency source-tx))
-        target-account (get accounts (:currency target-tx))
-        {:keys [taken remaining]} (money/take-coins (:coins source-account) source-tx)]
-    (-> accounts
-        (assoc (:currency source-tx) (-> source-account
-                                         (assoc :coins remaining)
-                                         (update-balance source-tx)))
-        (assoc (:currency target-tx) (-> target-account
-                                         (update :coins concat (-> (map set-original-value taken)
-                                                                   (money/change-currency target-tx)))
-                                         (update-balance target-tx))))))
+  (let [account (get accounts (:currency target-tx))]
+    (assoc accounts (:currency target-tx) (-> account
+                                              (update :coins concat coins)
+                                              (update-balance target-tx)))))
+
+(defn- trade [accounts {source-tx :source target-tx :target}]
+  (let [[coins accounts] (take-coins accounts source-tx)
+        coins (-> (map set-original-value coins)
+                  (money/change-currency target-tx))]
+    (put-coins accounts coins target-tx)))
 
 (defn accounts-view [accounts tx]
   (try
