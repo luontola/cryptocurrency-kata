@@ -107,3 +107,85 @@
       (is (thrown? AssertionError
                    (money/take-coins coins {:amount -0.0100000000000000M
                                             :currency :ETH}))))))
+
+(deftest test-change-currency
+  (testing "one coin"
+    (is (= [{:amount 20.0000000000000000M
+             :currency :EUR
+             :original-value {:amount 11.0000000000000000M
+                              :currency :EUR}}]
+           (money/change-currency [{:amount 0.0100000000000000M
+                                    :currency :BTC
+                                    :original-value {:amount 11.0000000000000000M
+                                                     :currency :EUR}}]
+                                  {:amount 20.0000000000000000M
+                                   :currency :EUR}))))
+
+  (testing "two coins, split even"
+    (is (= [{:amount 10.0000000000000000M
+             :currency :EUR
+             :original-value {:amount 11.0000000000000000M
+                              :currency :EUR}}
+            {:amount 10.0000000000000000M
+             :currency :EUR
+             :original-value {:amount 12.0000000000000000M
+                              :currency :EUR}}]
+           (money/change-currency [{:amount 0.0100000000000000M
+                                    :currency :BTC
+                                    :original-value {:amount 11.0000000000000000M
+                                                     :currency :EUR}}
+                                   {:amount 0.0100000000000000M
+                                    :currency :BTC
+                                    :original-value {:amount 12.0000000000000000M
+                                                     :currency :EUR}}]
+                                  {:amount 20.0000000000000000M
+                                   :currency :EUR}))))
+
+  (testing "two coins, split according to ratio"
+    (is (= [{:amount 5.0000000000000000M
+             :currency :EUR
+             :original-value {:amount 11.0000000000000000M
+                              :currency :EUR}}
+            {:amount 15.0000000000000000M
+             :currency :EUR
+             :original-value {:amount 12.0000000000000000M
+                              :currency :EUR}}]
+           (money/change-currency [{:amount 0.0100000000000000M
+                                    :currency :BTC
+                                    :original-value {:amount 11.0000000000000000M
+                                                     :currency :EUR}}
+                                   {:amount 0.0300000000000000M
+                                    :currency :BTC
+                                    :original-value {:amount 12.0000000000000000M
+                                                     :currency :EUR}}]
+                                  {:amount 20.0000000000000000M
+                                   :currency :EUR}))))
+
+  (testing "three coins, indivisible split"
+    ;; TODO          6.6666666666666666M
+    (is (= [{:amount 6.666666666666666M
+             :currency :EUR
+             :original-value {:amount 11.0000000000000000M
+                              :currency :EUR}}
+            {:amount 6.666666666666667M
+             :currency :EUR
+             :original-value {:amount 12.0000000000000000M
+                              :currency :EUR}}
+            {:amount 6.666666666666667M
+             :currency :EUR
+             :original-value {:amount 13.0000000000000000M
+                              :currency :EUR}}]
+           (money/change-currency [{:amount 0.0100000000000000M
+                                    :currency :BTC
+                                    :original-value {:amount 11.0000000000000000M
+                                                     :currency :EUR}}
+                                   {:amount 0.0100000000000000M
+                                    :currency :BTC
+                                    :original-value {:amount 12.0000000000000000M
+                                                     :currency :EUR}}
+                                   {:amount 0.0100000000000000M
+                                    :currency :BTC
+                                    :original-value {:amount 13.0000000000000000M
+                                                     :currency :EUR}}]
+                                  {:amount 20.0000000000000000M
+                                   :currency :EUR})))))

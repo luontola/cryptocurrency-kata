@@ -47,3 +47,22 @@
          (take-coins remaining-coins
                      still-wanted
                      (conj taken-coins taken-coin)))))))
+
+(defn change-currency [coins target]
+  ;; TODO: all must be positive
+  ;; TODO: all must be same currency
+  (if (empty? coins)
+    nil
+    (let [coins-total-amount (apply + (map :amount coins))
+          coin (first coins)
+          converted-coin (assoc coin :amount (with-precision (.scale (:amount target))
+                                               (* (:amount target)
+                                                  (/ (:amount coin) coins-total-amount)))
+                                     :currency (:currency target))
+          remaining-target (assoc target :amount (- (:amount target)
+                                                    (:amount converted-coin)))
+          converted-coins (conj (change-currency (rest coins) remaining-target)
+                                converted-coin)]
+      (assert (= (:amount target) (apply + (map :amount converted-coins)))
+              {:target target :coins coins :converted-coins converted-coins})
+      converted-coins)))
