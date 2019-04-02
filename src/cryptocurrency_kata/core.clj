@@ -88,7 +88,7 @@
                                         :currency (:currency fee-tx)})
     coins))
 
-(defn- trade [accounts {source-tx :source target-tx :target fee-tx :fee}]
+(defn- trade [accounts {source-tx :source target-tx :target fee-tx :fee :as tx}]
   (let [[coins accounts] (take-coins accounts source-tx)
         coins (-> (map set-original-value coins)
                   (include-fee-in-original-value fee-tx)
@@ -97,6 +97,19 @@
         [_fees accounts] (if fee-tx
                            (take-coins accounts fee-tx)
                            [nil accounts])]
+
+    (when (fiat-money? (:currency target-tx))
+      (let [value (-> (reduce money/sum coins)
+                      (dissoc :original-value))
+            original-value (reduce money/sum (map :original-value coins))]
+        (assert (= :EUR (:currency value)))
+        (assert (or (nil? original-value)
+                    (= :EUR (:currency original-value))))
+        (println (:time tx)
+                 (:order-id tx)
+                 (format "%.16f" (:amount value))
+                 (format "%.16f" (:amount original-value)))))
+
     accounts))
 
 (defn accounts-view [accounts tx]
