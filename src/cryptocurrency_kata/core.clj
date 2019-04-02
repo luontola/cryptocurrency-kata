@@ -72,6 +72,10 @@
                                          (update-balance target-tx))))))
 
 (defn accounts-view [accounts tx]
-  (case (:type tx)
-    :deposit (update accounts (:currency tx) deposit tx)
-    :trade (trade accounts tx)))
+  (try
+    (case (:type tx)
+      :deposit (update accounts (:currency tx) deposit tx)
+      :trade (trade accounts tx))
+    (catch Throwable t
+      (throw (ex-info "accounts-view failed to process transaction"
+                      {:tx tx :accounts accounts} t)))))

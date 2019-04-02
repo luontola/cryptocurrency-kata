@@ -1,6 +1,7 @@
 (ns cryptocurrency-kata.core-test
   (:require [clojure.test :refer :all]
-            [cryptocurrency-kata.core :as core]))
+            [cryptocurrency-kata.core :as core])
+  (:import (clojure.lang ExceptionInfo)))
 
 (set! *warn-on-reflection* true)
 
@@ -160,7 +161,7 @@
                      :transfer-id "8afb99ca-b8c3-4405-b4de-30bf2e7a0c86"}]))))
 
   (testing "balance sanity check"
-    (is (thrown? AssertionError
+    (is (thrown? ExceptionInfo
                  (reduce core/accounts-view nil
                          [{:type :deposit
                            :time "2018-02-08T20:31:08.148Z"
