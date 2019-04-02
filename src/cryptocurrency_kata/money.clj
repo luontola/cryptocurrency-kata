@@ -62,20 +62,40 @@
                      (conj taken-coins taken-coin)))))))
 
 (defn change-currency [coins target]
-  ;; TODO: all must be positive
-  ;; TODO: all must be same currency
   (if (empty? coins)
     nil
-    (let [coins-total-amount (apply + (map :amount coins))
+    (let [_ (assert (pos? (:amount target)) {:target target})
+          _ (assert (every? (comp pos? :amount) coins) {:coins coins})
+          _ (assert (apply = (map :currency coins)) {:coins coins})
+          coins-total-amount (apply + (map :amount coins))
           coin (first coins)
-          converted-coin (assoc coin :amount (divide-in-ratio (:amount target)
-                                                              (:amount coin)
-                                                              coins-total-amount)
+          consumed-target (divide-in-ratio (:amount target)
+                                           (:amount coin)
+                                           coins-total-amount)
+          remaining-target (assoc target :amount (- (:amount target) consumed-target))
+          converted-coin (assoc coin :amount consumed-target
                                      :currency (:currency target))
-          remaining-target (assoc target :amount (- (:amount target)
-                                                    (:amount converted-coin)))
           converted-coins (conj (change-currency (rest coins) remaining-target)
                                 converted-coin)]
       (assert (= (:amount target) (apply + (map :amount converted-coins)))
               {:target target :coins coins :converted-coins converted-coins})
       converted-coins)))
+
+(defn add-to-original-value [coins value-add]
+  (if (empty? coins)
+    nil
+    (let [_ (assert (pos? (:amount value-add)) {:value-add value-add})
+          _ (assert (every? (comp pos? :amount) coins) {:coins coins})
+          coins-total-amount (apply + (map :amount coins))
+          coin (first coins)
+          consumed-value-add (divide-in-ratio (:amount value-add)
+                                              (:amount coin)
+                                              coins-total-amount)
+          remaining-value-add (- (:amount value-add) consumed-value-add)
+          enriched-coin (assoc coin :original-value (if (:original-value coin)
+                                                      (sum (:original-value coin)
+                                                           (assoc value-add :amount consumed-value-add))
+                                                      (assoc value-add :amount consumed-value-add)))
+          enriched-coins (conj (add-to-original-value (rest coins) (assoc value-add :amount remaining-value-add))
+                               enriched-coin)]
+      enriched-coins)))
