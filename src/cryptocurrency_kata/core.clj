@@ -42,22 +42,14 @@
                                   (dissoc :original-value))]
                              []))))
 
-(defn- balance-check [accounts & txs]
-  (doseq [tx (->> (group-by :currency txs)
-                  (map-vals last) ; if there are fees, it's last transaction to the same account
-                  (vals))]
-    (let [account (get accounts (:currency tx))]
-      (assert (= (:balance tx) (:balance account))
-              {:tx tx :account account})))
-  accounts)
-
-(defn- update-balance [account]
+(defn- update-balance [account tx]
   (let [balance (if (not (empty? (:coins account)))
                   (:amount (reduce money/sum (:coins account)))
-                  0M)
-        currency (:currency (first (:coins account)))]
+                  0M)]
+    (assert (= balance (:balance tx))
+            {:balance balance :tx tx :account account})
     (cond-> (assoc account :balance balance)
-      (fiat-money? currency) (merge-coins))))
+      (fiat-money? (:currency tx)) (merge-coins))))
 
 (defn- deposit [accounts tx]
   (assert (pos? (:amount tx))
@@ -67,8 +59,7 @@
     (-> accounts
         (assoc (:currency tx) (-> account
                                   (update :coins concat coins)
-                                  (update-balance)))
-        (balance-check tx))))
+                                  (update-balance tx))))))
 
 (defn- set-original-value [coin]
   (if (fiat-money? (:currency coin))
@@ -81,7 +72,7 @@
         {:keys [taken remaining]} (money/take-coins (:coins account) source-tx)
         accounts (assoc accounts (:currency source-tx) (-> account
                                                            (assoc :coins remaining)
-                                                           (update-balance)))]
+                                                           (update-balance source-tx)))]
     [taken accounts]))
 
 (defn- put-coins [accounts coins target-tx]
@@ -89,7 +80,7 @@
   (let [account (get accounts (:currency target-tx))]
     (assoc accounts (:currency target-tx) (-> account
                                               (update :coins concat coins)
-                                              (update-balance)))))
+                                              (update-balance target-tx)))))
 
 (defn include-fee-in-original-value [coins fee-tx]
   (if fee-tx
@@ -106,7 +97,7 @@
         [_fees accounts] (if fee-tx
                            (take-coins accounts fee-tx)
                            [nil accounts])]
-    (balance-check accounts source-tx target-tx fee-tx)))
+    accounts))
 
 (defn accounts-view [accounts tx]
   (try
