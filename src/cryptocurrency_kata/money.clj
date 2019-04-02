@@ -12,6 +12,12 @@
 (defn- adjust-decimal-places [^BigDecimal number ^long decimal-places]
   (.setScale number decimal-places RoundingMode/HALF_UP))
 
+(defn- divide-in-ratio [^BigDecimal target ^BigDecimal source ^BigDecimal source-total]
+  (let [decimal-places (.scale target)]
+    (-> (with-precision (+ 10 decimal-places)
+          (* target (/ source source-total)))
+        (adjust-decimal-places decimal-places))))
+
 (defn- split-coin [coin split-amount]
   (assert (:amount coin) {:coin coin})
   (assert (:currency coin) {:coin coin})
@@ -22,12 +28,9 @@
 
     (:original-value coin)
     (let [[taken remain] (split-coin (select-keys coin [:amount :currency]) split-amount)
-          decimal-places (.scale ^BigDecimal (:amount (:original-value coin)))
-          orig-taken-amount (-> (with-precision (+ 10 decimal-places)
-                                  (* (:amount (:original-value coin))
-                                     (/ (:amount taken)
-                                        (:amount coin))))
-                                (adjust-decimal-places decimal-places))
+          orig-taken-amount (divide-in-ratio (:amount (:original-value coin))
+                                             (:amount taken)
+                                             (:amount coin))
           [orig-taken orig-remain] (split-coin (:original-value coin) orig-taken-amount)]
       [(assoc taken :original-value orig-taken)
        (assoc remain :original-value orig-remain)])
@@ -64,12 +67,9 @@
     nil
     (let [coins-total-amount (apply + (map :amount coins))
           coin (first coins)
-          decimal-places (.scale ^BigDecimal (:amount target))
-          converted-coin (assoc coin :amount (-> (with-precision (+ 10 decimal-places)
-                                                   (* (:amount target)
-                                                      (/ (:amount coin)
-                                                         coins-total-amount)))
-                                                 (adjust-decimal-places decimal-places))
+          converted-coin (assoc coin :amount (divide-in-ratio (:amount target)
+                                                              (:amount coin)
+                                                              coins-total-amount)
                                      :currency (:currency target))
           remaining-target (assoc target :amount (- (:amount target)
                                                     (:amount converted-coin)))

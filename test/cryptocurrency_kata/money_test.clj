@@ -2,6 +2,8 @@
   (:require [clojure.test :refer :all]
             [cryptocurrency-kata.money :as money]))
 
+(set! *warn-on-reflection* true)
+
 (deftest test-sum
   (testing "sum positive amounts"
     (is (= {:amount 30.00M
