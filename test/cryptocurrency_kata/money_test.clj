@@ -29,6 +29,21 @@
                       {:amount -10.00M
                        :currency :EUR}))))
 
+  (testing "nil"
+    (is (= {:amount 10.00M
+            :currency :EUR}
+           (money/sum {:amount 10.00M
+                       :currency :EUR}
+                      nil)
+           (money/sum nil
+                      {:amount 10.00M
+                       :currency :EUR})
+           (money/sum {:amount 10.00M
+                       :currency :EUR})))
+    (is (= nil
+           (money/sum nil nil)
+           (money/sum nil))))
+
   (testing "cannot sum different currencies"
     (is (thrown? AssertionError
                  (money/sum {:amount 10.00M

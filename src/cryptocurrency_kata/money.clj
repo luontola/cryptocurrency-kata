@@ -3,11 +3,17 @@
 
 (set! *warn-on-reflection* true)
 
-(defn sum [a b]
-  (assert (= (:currency a) (:currency b))
-          [a b])
-  {:amount (+ (:amount a) (:amount b))
-   :currency (:currency a)})
+(defn sum
+  ([a] a)
+  ([a b]
+   (cond
+     (and a b) (do
+                 (assert (= (:currency a) (:currency b))
+                         [a b])
+                 {:amount (+ (:amount a) (:amount b))
+                  :currency (:currency a)})
+     a a
+     b b)))
 
 (defn- adjust-decimal-places [^BigDecimal number ^long decimal-places]
   (.setScale number decimal-places RoundingMode/HALF_UP))
