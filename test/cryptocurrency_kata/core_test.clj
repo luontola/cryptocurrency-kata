@@ -290,42 +290,91 @@
                                   :balance 110.0000000000000000M
                                   :currency :EUR}}]))))))
 
-  #_(testing "trade crypto coins to crypto coins,"
-      (let [accounts {:EUR {:balance 5.0000000000000000M}
-                      :BTC {:balance 0.0200000000000000M
-                            :coins [{:amount 0.0100000000000000M
-                                     :currency :BTC
-                                     :original-value {:amount 15.0000000000000000M
-                                                      :currency :EUR}}
-                                    {:amount 0.0100000000000000M
-                                     :currency :BTC
-                                     :original-value {:amount 30.0000000000000000M
-                                                      :currency :EUR}}]}}]
-        (testing "whole coin"
-          (is (= {:EUR {:balance 5.0000000000000000M}
-                  :BTC {:balance 0.0100000000000000M
-                        :coins [{:amount 0.0100000000000000M
-                                 :currency :BTC
-                                 :original-value {:amount 30.0000000000000000M
-                                                  :currency :EUR}}]}
-                  :ETH {:balance 1.0000000000000000M
-                        :coins [{:amount 1.0000000000000000M
-                                 :currency :ETH
-                                 :original-value {:amount 15.0000000000000000M
-                                                  :currency :EUR}}]}}
-                 (reduce core/accounts-view accounts
-                         [{:type :trade
-                           :time "2018-02-04T21:45:51.354Z"
-                           :trade-id 11311696
-                           :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
-                           :source {:amount -0.0100000000000000M
-                                    :balance 0.0100000000000000M
-                                    :currency :BTC}
-                           :target {:amount 1.0000000000000000M
-                                    :balance 1.0000000000000000M
-                                    :currency :ETH}}])))))))
+  (testing "trade crypto coins to crypto coins,"
+    (let [accounts (reduce core/accounts-view nil
+                           [{:type :deposit
+                             :time "2018-02-08T20:31:08.148Z"
+                             :amount 50.0000000000000000M
+                             :balance 50.0000000000000000M
+                             :currency :EUR
+                             :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}
+                            {:type :trade
+                             :time "2018-02-04T21:45:51.354Z"
+                             :trade-id 11311696
+                             :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                             :source {:amount -15.0000000000000000M
+                                      :balance 35.0000000000000000M
+                                      :currency :EUR}
+                             :target {:amount 0.0100000000000000M
+                                      :balance 0.0100000000000000M
+                                      :currency :BTC}}
+                            {:type :trade
+                             :time "2018-02-04T21:45:51.354Z"
+                             :trade-id 11311696
+                             :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                             :source {:amount -30.0000000000000000M
+                                      :balance 5.0000000000000000M
+                                      :currency :EUR}
+                             :target {:amount 0.0100000000000000M
+                                      :balance 0.0200000000000000M
+                                      :currency :BTC}}])]
 
-;; TODO: trade crypto coins to crypto coins
+      (testing "whole coin"
+        (is (= {:EUR {:balance 5.0000000000000000M
+                      :coins [{:amount 5.0000000000000000M
+                               :currency :EUR}]}
+                :BTC {:balance 0.0100000000000000M
+                      :coins [{:amount 0.0100000000000000M
+                               :currency :BTC
+                               :original-value {:amount 30.0000000000000000M
+                                                :currency :EUR}}]}
+                :ETH {:balance 1.0000000000000000M
+                      :coins [{:amount 1.0000000000000000M
+                               :currency :ETH
+                               :original-value {:amount 15.0000000000000000M
+                                                :currency :EUR}}]}}
+               (reduce core/accounts-view accounts
+                       [{:type :trade
+                         :time "2018-02-04T21:45:51.354Z"
+                         :trade-id 11311696
+                         :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                         :source {:amount -0.0100000000000000M
+                                  :balance 0.0100000000000000M
+                                  :currency :BTC}
+                         :target {:amount 1.0000000000000000M
+                                  :balance 1.0000000000000000M
+                                  :currency :ETH}}]))))
+
+      (testing "partial coin"
+        (is (= {:EUR {:balance 5.0000000000000000M
+                      :coins [{:amount 5.0000000000000000M
+                               :currency :EUR}]}
+                :BTC {:balance 0.0125000000000000M
+                      :coins [{:amount 0.0025000000000000M
+                               :currency :BTC
+                               :original-value {:amount 3.7500000000000000M
+                                                :currency :EUR}}
+                              {:amount 0.0100000000000000M
+                               :currency :BTC
+                               :original-value {:amount 30.0000000000000000M
+                                                :currency :EUR}}]}
+                :ETH {:balance 0.7500000000000000M
+                      :coins [{:amount 0.7500000000000000M
+                               :currency :ETH
+                               :original-value {:amount 11.2500000000000000M
+                                                :currency :EUR}}]}}
+               (reduce core/accounts-view accounts
+                       [{:type :trade
+                         :time "2018-02-04T21:45:51.354Z"
+                         :trade-id 11311696
+                         :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                         :source {:amount -0.0075000000000000M
+                                  :balance 0.0125000000000000M
+                                  :currency :BTC}
+                         :target {:amount 0.7500000000000000M
+                                  :balance 0.7500000000000000M
+                                  :currency :ETH}}])))))))
+
 ;; TODO: calculate profits from trades
 ;; TODO: calculate losses from trades
 ;; TODO: calculate income from mining

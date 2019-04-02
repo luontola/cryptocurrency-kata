@@ -44,34 +44,31 @@
     (cond-> (assoc account :balance balance)
       (fiat-money? (:currency tx)) (merge-coins))))
 
-(defn- add-coins [account tx]
-  (assert (pos? (:amount tx))
-          {:money tx})
-  (update account :coins concat [(select-keys tx [:amount :currency :original-value])]))
-
 (defn- deposit [account tx]
   (assert (pos? (:amount tx))
           {:money tx})
   (-> account
-      (add-coins tx)
+      (update :coins concat [(select-keys tx [:amount :currency :original-value])])
       (update-balance tx)))
+
+(defn- set-original-value [coin]
+  (if (fiat-money? (:currency coin))
+    (assoc coin :original-value coin)
+    coin))
 
 (defn- trade [accounts {source-tx :source target-tx :target}]
   (assert (neg? (:amount source-tx)) {:money source-tx})
   (assert (pos? (:amount target-tx)) {:money target-tx})
-  ;; TODO: add original value only when source is in fiat currency
-  (let [target-tx (assoc target-tx :original-value {:amount (- (:amount source-tx))
-                                                    :currency (:currency source-tx)})
-        source-account (get accounts (:currency source-tx))
+  (let [source-account (get accounts (:currency source-tx))
         target-account (get accounts (:currency target-tx))
         {:keys [taken remaining]} (money/take-coins (:coins source-account) source-tx)]
-    ;; TODO: add taken coins to target account as the original value
     (-> accounts
         (assoc (:currency source-tx) (-> source-account
                                          (assoc :coins remaining)
                                          (update-balance source-tx)))
         (assoc (:currency target-tx) (-> target-account
-                                         (add-coins target-tx)
+                                         (update :coins concat (-> (map set-original-value taken)
+                                                                   (money/change-currency target-tx)))
                                          (update-balance target-tx))))))
 
 (defn accounts-view [accounts tx]
