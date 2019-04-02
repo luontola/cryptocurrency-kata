@@ -99,16 +99,18 @@
                            [nil accounts])]
 
     (when (fiat-money? (:currency target-tx))
-      (let [value (-> (reduce money/sum coins)
-                      (dissoc :original-value))
-            original-value (reduce money/sum (map :original-value coins))]
-        (assert (= :EUR (:currency value)))
-        (assert (or (nil? original-value)
-                    (= :EUR (:currency original-value))))
-        (println (:time tx)
-                 (:order-id tx)
-                 (format "%.16f" (:amount value))
-                 (format "%.16f" (:amount original-value)))))
+      (doseq [coin coins]
+        (let [value coin
+              original-value (:original-value coin)]
+          (assert (= :EUR (:currency value)))
+          (assert (or (nil? original-value)
+                      (= :EUR (:currency original-value))))
+          (println (:time tx)
+                   (:order-id tx)
+                   (format "%.16f" (:amount value))
+                   (if original-value
+                     (format "%.16f" (:amount original-value))
+                     "")))))
 
     accounts))
 
