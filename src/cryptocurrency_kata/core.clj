@@ -38,7 +38,8 @@
 (defn merge-coins [account]
   (update account :coins (fn [coins]
                            (if (not (empty? coins))
-                             [(reduce money/sum coins)]
+                             [(-> (reduce money/sum coins)
+                                  (dissoc :original-value))]
                              []))))
 
 (defn- balance-check [accounts & txs]
@@ -90,20 +91,21 @@
                                               (update :coins concat coins)
                                               (update-balance)))))
 
-(defn add-fees-to-original-value [coins fees]
-  (if (empty? fees)
-    coins
-    (money/add-to-original-value coins (reduce money/sum fees))))
+(defn include-fee-in-original-value [coins fee-tx]
+  (if fee-tx
+    (money/add-to-original-value coins {:amount (- (:amount fee-tx))
+                                        :currency (:currency fee-tx)})
+    coins))
 
 (defn- trade [accounts {source-tx :source target-tx :target fee-tx :fee}]
   (let [[coins accounts] (take-coins accounts source-tx)
-        [fees accounts] (if fee-tx
-                          (take-coins accounts fee-tx)
-                          [nil accounts])
         coins (-> (map set-original-value coins)
-                  (add-fees-to-original-value fees)
+                  (include-fee-in-original-value fee-tx)
                   (money/change-currency target-tx))
-        accounts (put-coins accounts coins target-tx)]
+        accounts (put-coins accounts coins target-tx)
+        [_fees accounts] (if fee-tx
+                           (take-coins accounts fee-tx)
+                           [nil accounts])]
     (balance-check accounts source-tx target-tx fee-tx)))
 
 (defn accounts-view [accounts tx]

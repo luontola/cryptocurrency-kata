@@ -494,6 +494,44 @@
                                :balance 19.9700000000000000M
                                :currency :EUR}}]))))
 
+      (testing "crypto to fiat, empty account"
+        (let [accounts (reduce core/accounts-view nil
+                               [{:type :deposit
+                                 :time "2018-02-08T20:31:08.148Z"
+                                 :amount 20.0000000000000000M
+                                 :balance 20.0000000000000000M
+                                 :currency :EUR
+                                 :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}
+                                {:type :trade
+                                 :time "2018-02-04T21:45:51.354Z"
+                                 :trade-id 11311696
+                                 :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                                 :source {:amount -20.0000000000000000M
+                                          :balance 0.0000000000000000M
+                                          :currency :EUR}
+                                 :target {:amount 0.0100000000000000M
+                                          :balance 0.0100000000000000M
+                                          :currency :BTC}}])]
+          (is (= {:EUR {:balance 19.9700000000000000M
+                        :coins [{:amount 19.9700000000000000M
+                                 :currency :EUR}]}
+                  :BTC {:balance 0.0000000000000000M
+                        :coins []}}
+                 (reduce core/accounts-view accounts
+                         [{:type :trade
+                           :time "2018-02-04T21:45:51.354Z"
+                           :trade-id 11311696
+                           :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                           :source {:amount -0.0100000000000000M
+                                    :balance 0.0000000000000000M
+                                    :currency :BTC}
+                           :target {:amount 20.0000000000000000M
+                                    :balance 20.0000000000000000M
+                                    :currency :EUR}
+                           :fee {:amount -0.0300000000000000M
+                                 :balance 19.9700000000000000M
+                                 :currency :EUR}}])))))
+
       (testing "balance sanity check"
         (is (thrown? ExceptionInfo
                      (reduce core/accounts-view accounts
