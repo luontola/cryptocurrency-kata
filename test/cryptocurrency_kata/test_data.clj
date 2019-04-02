@@ -52,4 +52,10 @@
        (edn/read-string)
        (core/group-trades)
        (format-for-edn)
-       (spit "data/all-grouped.edn")))
+       (spit "data/all-grouped.edn"))
+
+  (->> (slurp "data/all-grouped.edn")
+       (edn/read-string)
+       (reduce core/accounts-view nil)
+       (format-for-edn)
+       (spit "data/all-accounts.edn")))
