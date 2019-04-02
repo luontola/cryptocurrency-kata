@@ -98,6 +98,22 @@
                (money/take-coins coins {:amount -7.00M
                                         :currency :EUR})))))
 
+    (testing "uneven split of original value"
+      (let [coins [{:amount 0.0300000000000000M
+                    :currency :BTC
+                    :original-value {:amount 10.0000000000000000M
+                                     :currency :EUR}}]]
+        (is (= {:taken [{:amount 0.0100000000000000M
+                         :currency :BTC
+                         :original-value {:amount 3.3333333333333333M
+                                          :currency :EUR}}]
+                :remaining [{:amount 0.0200000000000000M
+                             :currency :BTC
+                             :original-value {:amount 6.6666666666666667M
+                                              :currency :EUR}}]}
+               (money/take-coins coins {:amount -0.0100000000000000M
+                                        :currency :BTC})))))
+
     (testing "cannot take more than there are coins"
       (is (thrown? AssertionError
                    (money/take-coins coins {:amount -0.0300000000000000M

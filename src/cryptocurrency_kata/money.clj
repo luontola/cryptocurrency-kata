@@ -9,6 +9,9 @@
   {:amount (+ (:amount a) (:amount b))
    :currency (:currency a)})
 
+(defn- adjust-decimal-places [^BigDecimal number ^long decimal-places]
+  (.setScale number decimal-places RoundingMode/HALF_UP))
+
 (defn- split-coin [coin split-amount]
   (assert (:amount coin) {:coin coin})
   (assert (:currency coin) {:coin coin})
@@ -19,9 +22,12 @@
 
     (:original-value coin)
     (let [[taken remain] (split-coin (select-keys coin [:amount :currency]) split-amount)
-          orig-taken-amount (* (:amount (:original-value coin))
-                               (/ (:amount taken)
-                                  (:amount coin)))
+          decimal-places (.scale ^BigDecimal (:amount (:original-value coin)))
+          orig-taken-amount (-> (with-precision (+ 10 decimal-places)
+                                  (* (:amount (:original-value coin))
+                                     (/ (:amount taken)
+                                        (:amount coin))))
+                                (adjust-decimal-places decimal-places))
           [orig-taken orig-remain] (split-coin (:original-value coin) orig-taken-amount)]
       [(assoc taken :original-value orig-taken)
        (assoc remain :original-value orig-remain)])
@@ -50,9 +56,6 @@
          (take-coins remaining-coins
                      still-wanted
                      (conj taken-coins taken-coin)))))))
-
-(defn- adjust-decimal-places [^BigDecimal number ^long decimal-places]
-  (.setScale number decimal-places RoundingMode/HALF_UP))
 
 (defn change-currency [coins target]
   ;; TODO: all must be positive
