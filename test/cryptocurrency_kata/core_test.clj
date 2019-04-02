@@ -171,7 +171,7 @@
                            :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}])))))
 
 (deftest test-trade
-  (testing "trade fiat money to crypto coins"
+  (testing "trade fiat money to crypto coins,"
     (let [accounts (reduce core/accounts-view nil
                            [{:type :deposit
                              :time "2018-02-08T20:31:08.148Z"
@@ -179,26 +179,47 @@
                              :balance 20.0000000000000000M
                              :currency :EUR
                              :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}])]
-      (is (= {:EUR {:balance 5.0000000000000000M
-                    :coins [{:amount 5.0000000000000000M
-                             :currency :EUR}]}
-              :BTC {:balance 0.0100000000000000M
-                    :coins [{:amount 0.0100000000000000M
-                             :currency :BTC
-                             :original-value {:amount 15.0000000000000000M
-                                              :currency :EUR}}]}}
-             (reduce core/accounts-view accounts
-                     [{:type :trade
-                       :time "2018-02-04T21:45:51.354Z"
-                       :trade-id 11311696
-                       :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
-                       :source {:amount -15.0000000000000000M
-                                :balance 5.0000000000000000M
-                                :currency :EUR}
-                       :target {:amount 0.0100000000000000M
-                                :balance 0.0100000000000000M
-                                :currency :BTC}}])))))
 
+      (testing "transfer some"
+        (is (= {:EUR {:balance 5.0000000000000000M
+                      :coins [{:amount 5.0000000000000000M
+                               :currency :EUR}]}
+                :BTC {:balance 0.0100000000000000M
+                      :coins [{:amount 0.0100000000000000M
+                               :currency :BTC
+                               :original-value {:amount 15.0000000000000000M
+                                                :currency :EUR}}]}}
+               (reduce core/accounts-view accounts
+                       [{:type :trade
+                         :time "2018-02-04T21:45:51.354Z"
+                         :trade-id 11311696
+                         :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                         :source {:amount -15.0000000000000000M
+                                  :balance 5.0000000000000000M
+                                  :currency :EUR}
+                         :target {:amount 0.0100000000000000M
+                                  :balance 0.0100000000000000M
+                                  :currency :BTC}}]))))
+
+      (testing "empty the account"
+        (is (= {:EUR {:balance 0.0000000000000000M
+                      :coins []}
+                :BTC {:balance 0.0100000000000000M
+                      :coins [{:amount 0.0100000000000000M
+                               :currency :BTC
+                               :original-value {:amount 20.0000000000000000M
+                                                :currency :EUR}}]}}
+               (reduce core/accounts-view accounts
+                       [{:type :trade
+                         :time "2018-02-04T21:45:51.354Z"
+                         :trade-id 11311696
+                         :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                         :source {:amount -20.0000000000000000M
+                                  :balance 0.0000000000000000M
+                                  :currency :EUR}
+                         :target {:amount 0.0100000000000000M
+                                  :balance 0.0100000000000000M
+                                  :currency :BTC}}]))))))
 
   (testing "trade crypto coins to fiat money,"
     (let [accounts (reduce core/accounts-view nil

@@ -35,10 +35,15 @@
 (def ^:private crypto-coin? (comp not fiat-money?))
 
 (defn merge-coins [account]
-  (assoc account :coins [(reduce money/sum (:coins account))]))
+  (update account :coins (fn [coins]
+                           (if (not (empty? coins))
+                             [(reduce money/sum coins)]
+                             []))))
 
 (defn- update-balance [account tx]
-  (let [balance (:amount (reduce money/sum (:coins account)))]
+  (let [balance (if (not (empty? (:coins account)))
+                  (:amount (reduce money/sum (:coins account)))
+                  0M)]
     (assert (= balance (:balance tx))
             {:tx tx :account account})
     (cond-> (assoc account :balance balance)
