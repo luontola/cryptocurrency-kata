@@ -395,7 +395,148 @@
                                   :currency :BTC}
                          :target {:amount 0.7500000000000000M
                                   :balance 0.7500000000000000M
-                                  :currency :ETH}}])))))))
+                                  :currency :ETH}}]))))))
+
+  (testing "trading fees,"
+    (let [accounts (reduce core/accounts-view nil
+                           [{:type :deposit
+                             :time "2018-02-08T20:31:08.148Z"
+                             :amount 20.0000000000000000M
+                             :balance 20.0000000000000000M
+                             :currency :EUR
+                             :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}])]
+      (testing "fiat to crypto"
+        (is (= {:EUR {:balance 4.9700000000000000M
+                      :coins [{:amount 4.9700000000000000M
+                               :currency :EUR}]}
+                :BTC {:balance 0.0100000000000000M
+                      :coins [{:amount 0.0100000000000000M
+                               :currency :BTC
+                               :original-value {:amount 15.0300000000000000M
+                                                :currency :EUR}}]}}
+               (reduce core/accounts-view accounts
+                       [{:type :trade
+                         :time "2018-02-04T21:45:51.354Z"
+                         :trade-id 11311696
+                         :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                         :source {:amount -15.0000000000000000M
+                                  :balance 5.0000000000000000M
+                                  :currency :EUR}
+                         :target {:amount 0.0100000000000000M
+                                  :balance 0.0100000000000000M
+                                  :currency :BTC}
+                         :fee {:amount -0.0300000000000000M
+                               :balance 4.9700000000000000M
+                               :currency :EUR}}])))))
+
+    (let [accounts (reduce core/accounts-view nil
+                           [{:type :deposit
+                             :time "2018-02-08T20:31:08.148Z"
+                             :amount 20.0000000000000000M
+                             :balance 20.0000000000000000M
+                             :currency :EUR
+                             :transfer-id "32b4cbea-230a-492d-a2dd-4e4c2be5a7a6"}
+                            {:type :trade
+                             :time "2018-02-04T21:45:51.354Z"
+                             :trade-id 11311696
+                             :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                             :source {:amount -15.0000000000000000M
+                                      :balance 5.0000000000000000M
+                                      :currency :EUR}
+                             :target {:amount 0.0100000000000000M
+                                      :balance 0.0100000000000000M
+                                      :currency :BTC}}])]
+      (testing "crypto to crypto"
+        (is (= {:EUR {:balance 4.9700000000000000M
+                      :coins [{:amount 4.9700000000000000M
+                               :currency :EUR}]}
+                :BTC {:balance 0.0000000000000000M
+                      :coins []}
+                :ETH {:balance 1.0000000000000000M
+                      :coins [{:amount 1.0000000000000000M
+                               :currency :ETH
+                               :original-value {:amount 15.0300000000000000M
+                                                :currency :EUR}}]}}
+               (reduce core/accounts-view accounts
+                       [{:type :trade
+                         :time "2018-02-04T21:45:51.354Z"
+                         :trade-id 11311696
+                         :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                         :source {:amount -0.0100000000000000M
+                                  :balance 0.0000000000000000M
+                                  :currency :BTC}
+                         :target {:amount 1.0000000000000000M
+                                  :balance 1.0000000000000000M
+                                  :currency :ETH}
+                         :fee {:amount -0.0300000000000000M
+                               :balance 4.9700000000000000M
+                               :currency :EUR}}]))))
+
+      (testing "crypto to fiat"
+        ;; TODO: the increase original value should be included in calculating profits
+        (is (= {:EUR {:balance 19.9700000000000000M
+                      :coins [{:amount 19.9700000000000000M
+                               :currency :EUR}]}
+                :BTC {:balance 0.0000000000000000M
+                      :coins []}}
+               (reduce core/accounts-view accounts
+                       [{:type :trade
+                         :time "2018-02-04T21:45:51.354Z"
+                         :trade-id 11311696
+                         :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                         :source {:amount -0.0100000000000000M
+                                  :balance 0.0000000000000000M
+                                  :currency :BTC}
+                         :target {:amount 15.0000000000000000M
+                                  :balance 20.0000000000000000M
+                                  :currency :EUR}
+                         :fee {:amount -0.0300000000000000M
+                               :balance 19.9700000000000000M
+                               :currency :EUR}}]))))
+
+      (testing "balance sanity check"
+        (is (thrown? ExceptionInfo
+                     (reduce core/accounts-view accounts
+                             [{:type :trade
+                               :time "2018-02-04T21:45:51.354Z"
+                               :trade-id 11311696
+                               :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                               :source {:amount -0.0100000000000000M
+                                        :balance 0.0000000000000666M
+                                        :currency :BTC}
+                               :target {:amount 15.0000000000000000M
+                                        :balance 20.0000000000000000M
+                                        :currency :EUR}
+                               :fee {:amount -0.0300000000000000M
+                                     :balance 19.9700000000000000M
+                                     :currency :EUR}}])))
+        (is (thrown? ExceptionInfo
+                     (reduce core/accounts-view accounts
+                             [{:type :trade
+                               :time "2018-02-04T21:45:51.354Z"
+                               :trade-id 11311696
+                               :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                               :source {:amount -0.0100000000000000M
+                                        :balance 0.0000000000000000M
+                                        :currency :BTC}
+                               :target {:amount 15.0000000000000000M
+                                        :balance 20.0000000000000666M
+                                        :currency :EUR}}])))
+        (is (thrown? ExceptionInfo
+                     (reduce core/accounts-view accounts
+                             [{:type :trade
+                               :time "2018-02-04T21:45:51.354Z"
+                               :trade-id 11311696
+                               :order-id "37f1a4bd-4f87-43a5-9b80-641598d60e54"
+                               :source {:amount -0.0100000000000000M
+                                        :balance 0.0000000000000000M
+                                        :currency :BTC}
+                               :target {:amount 15.0000000000000000M
+                                        :balance 20.0000000000000000M
+                                        :currency :EUR}
+                               :fee {:amount -0.0300000000000000M
+                                     :balance 19.9700000000000666M
+                                     :currency :EUR}}])))))))
 
 ;; TODO: calculate profits from trades
 ;; TODO: calculate losses from trades

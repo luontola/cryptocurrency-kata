@@ -1,5 +1,6 @@
 (ns cryptocurrency-kata.core
-  (:require [cryptocurrency-kata.money :as money]))
+  (:require [cryptocurrency-kata.money :as money]
+            [medley.core :refer [map-vals]]))
 
 (set! *warn-on-reflection* true)
 
@@ -40,21 +41,33 @@
                              [(reduce money/sum coins)]
                              []))))
 
-(defn- update-balance [account tx]
+(defn- balance-check [accounts & txs]
+  (doseq [tx (->> (group-by :currency txs)
+                  (map-vals last) ; if there are fees, it's last transaction to the same account
+                  (vals))]
+    (let [account (get accounts (:currency tx))]
+      (assert (= (:balance tx) (:balance account))
+              {:tx tx :account account})))
+  accounts)
+
+(defn- update-balance [account]
   (let [balance (if (not (empty? (:coins account)))
                   (:amount (reduce money/sum (:coins account)))
-                  0M)]
-    (assert (= balance (:balance tx))
-            {:balance balance :tx tx :account account})
+                  0M)
+        currency (:currency (first (:coins account)))]
     (cond-> (assoc account :balance balance)
-      (fiat-money? (:currency tx)) (merge-coins))))
+      (fiat-money? currency) (merge-coins))))
 
-(defn- deposit [account tx]
+(defn- deposit [accounts tx]
   (assert (pos? (:amount tx))
           {:money tx})
-  (-> account
-      (update :coins concat [(select-keys tx [:amount :currency :original-value])])
-      (update-balance tx)))
+  (let [account (get accounts (:currency tx))
+        coins [(select-keys tx [:amount :currency :original-value])]]
+    (-> accounts
+        (assoc (:currency tx) (-> account
+                                  (update :coins concat coins)
+                                  (update-balance)))
+        (balance-check tx))))
 
 (defn- set-original-value [coin]
   (if (fiat-money? (:currency coin))
@@ -67,7 +80,7 @@
         {:keys [taken remaining]} (money/take-coins (:coins account) source-tx)
         accounts (assoc accounts (:currency source-tx) (-> account
                                                            (assoc :coins remaining)
-                                                           (update-balance source-tx)))]
+                                                           (update-balance)))]
     [taken accounts]))
 
 (defn- put-coins [accounts coins target-tx]
@@ -75,18 +88,28 @@
   (let [account (get accounts (:currency target-tx))]
     (assoc accounts (:currency target-tx) (-> account
                                               (update :coins concat coins)
-                                              (update-balance target-tx)))))
+                                              (update-balance)))))
 
-(defn- trade [accounts {source-tx :source target-tx :target}]
+(defn add-fees-to-original-value [coins fees]
+  (if (empty? fees)
+    coins
+    (money/add-to-original-value coins (reduce money/sum fees))))
+
+(defn- trade [accounts {source-tx :source target-tx :target fee-tx :fee}]
   (let [[coins accounts] (take-coins accounts source-tx)
+        [fees accounts] (if fee-tx
+                          (take-coins accounts fee-tx)
+                          [nil accounts])
         coins (-> (map set-original-value coins)
-                  (money/change-currency target-tx))]
-    (put-coins accounts coins target-tx)))
+                  (add-fees-to-original-value fees)
+                  (money/change-currency target-tx))
+        accounts (put-coins accounts coins target-tx)]
+    (balance-check accounts source-tx target-tx fee-tx)))
 
 (defn accounts-view [accounts tx]
   (try
     (case (:type tx)
-      :deposit (update accounts (:currency tx) deposit tx)
+      :deposit (deposit accounts tx)
       :trade (trade accounts tx))
     (catch Throwable t
       (throw (ex-info "accounts-view failed to process transaction"
