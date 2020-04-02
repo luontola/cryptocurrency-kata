@@ -24,7 +24,10 @@
 
 (defn parse-account-report-csv [content]
   (let [[header-row & rows] (csv/read-csv content)
-        columns (->> [{:header "type"
+        columns (->> [{:header "portfolio"
+                       :key :portfolio
+                       :parser keyword}
+                      {:header "type"
                        :key :type
                        :parser keyword}
                       {:header "time"
