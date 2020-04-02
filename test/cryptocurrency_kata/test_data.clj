@@ -41,6 +41,7 @@
         (println (str input) "->" (str output))
         (->> (slurp input)
              (coinbase/parse-account-report-csv)
+             (map #(dissoc % :portfolio))
              (strip-types)
              (format-for-edn)
              (spit output))))))
